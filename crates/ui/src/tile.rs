@@ -1,6 +1,7 @@
 //! Tuile du tableau de bord : valeur globale, courbe des dernières minutes, application principale.
 
 use domain::History;
+use gpui::prelude::FluentBuilder as _;
 use gpui::{IntoElement, ParentElement, PathBuilder, Styled, canvas, div, point, px, rgb};
 
 use crate::theme;
@@ -8,6 +9,8 @@ use crate::theme;
 pub struct Tile {
     pub label: &'static str,
     pub value: String,
+    /// Précision sous la valeur, quand elle a besoin d'être expliquée.
+    pub detail: Option<String>,
     pub top: String,
     pub history: History,
     /// Haut de l'échelle ; `None` s'adapte au pic observé (disque, réseau).
@@ -39,6 +42,9 @@ pub fn render(tile: Tile) -> impl IntoElement {
                 .whitespace_nowrap()
                 .child(tile.value),
         )
+        .when_some(tile.detail, |this, detail| {
+            this.child(div().text_xs().text_color(rgb(theme::MUTED)).child(detail))
+        })
         .child(sparkline(tile.history, tile.scale))
         .child(
             div()

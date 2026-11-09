@@ -51,8 +51,8 @@ La CI compile et teste sur macOS et Windows.
 
 ## Limites connues
 
-- **Processus d'autres utilisateurs** : sans droits root, macOS masque leur CPU, leur RAM et leur disque, qui s'affichent « — ». Le total de la tuile Mémoire vient de l'OS et reste donc juste, mais il dépasse la somme des lignes.
-- **RAM d'une application** : c'est la somme des mémoires résidentes (RSS). La mémoire partagée peut être comptée plusieurs fois.
+- **Processus d'autres utilisateurs** : sans droits root, macOS masque leur CPU, leur RAM et leur disque, qui s'affichent « — ». Le total de la tuile Mémoire vient de l'OS et reste donc juste, même sans ces lignes.
+- **RAM d'une application** : sur macOS, c'est la somme des empreintes physiques, comme dans le Moniteur d'activité. La mémoire compressée y compte à sa taille d'origine et le swap est inclus : quand la machine manque de RAM, la somme des lignes peut dépasser la mémoire installée. Sous la valeur de la tuile Mémoire, l'app indique la part du système (pages verrouillées, surtout le noyau) et celle du compresseur, qui ne figurent dans aucune ligne. Sur Windows, c'est la somme des mémoires résidentes (RSS), où la mémoire partagée peut être comptée plusieurs fois.
 - **Regroupement** : les services WebKit de Safari apparaissent séparément, car ils ne vivent pas dans `Safari.app`.
 - **GPU sur macOS** : `accumulatedGPUTime` n'est pas une API documentée par Apple et peut changer. La mesure devient alors « — ».
 - **Recherche** : saisie clavier simple, sans méthode de saisie (IME).

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use application::{ProbeError, SystemProbe, SystemSample, SystemTotals};
+use application::{MemoryBreakdown, ProbeError, SystemProbe, SystemSample, SystemTotals};
 use domain::{ProcessId, ProcessSample, Usage};
 use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
@@ -17,6 +17,10 @@ pub(crate) trait RateSource: Send {
 pub(crate) struct ExtraSources {
     pub(crate) network: Option<Box<dyn RateSource>>,
     pub(crate) gpu: Option<Box<dyn RateSource>>,
+    /// Mémoire d'un processus selon l'OS. Sans source ou sans réponse : le RSS de `sysinfo`.
+    pub(crate) footprint: Option<fn(u32) -> Option<u64>>,
+    /// Mémoire du système et du compresseur, quand l'OS la fournit.
+    pub(crate) memory_breakdown: Option<fn() -> Option<MemoryBreakdown>>,
 }
 
 /// Collecte CPU, RAM et disque via `sysinfo`, et complète avec les sources de l'OS.
@@ -59,6 +63,7 @@ impl SystemProbe for SysinfoProbe {
             .as_mut()
             .and_then(|source| source.sample());
         let gpu = self.extra.gpu.as_mut().and_then(|source| source.sample());
+        let footprint = self.extra.footprint;
         let cores = self.system.cpus().len().max(1) as f64;
 
         let processes = self
@@ -85,7 +90,11 @@ impl SystemProbe for SysinfoProbe {
                     usage: Usage {
                         cpu_percent: (readable && elapsed.is_some())
                             .then(|| f64::from(process.cpu_usage()) / cores),
-                        memory_bytes: readable.then(|| process.memory()),
+                        memory_bytes: readable.then(|| {
+                            footprint
+                                .and_then(|read| read(pid))
+                                .unwrap_or_else(|| process.memory())
+                        }),
                         gpu_percent: gpu.as_ref().map(|map| rate_or_zero(map, pid)),
                         disk_bytes_per_sec: elapsed
                             .filter(|_| readable)
@@ -102,6 +111,7 @@ impl SystemProbe for SysinfoProbe {
                 cpu_percent: f64::from(self.system.global_cpu_usage()),
                 memory_used_bytes: self.system.used_memory(),
                 memory_total_bytes: self.system.total_memory(),
+                memory_breakdown: self.extra.memory_breakdown.and_then(|read| read()),
                 gpu_percent: self.extra.gpu.as_ref().and_then(|source| source.total()),
             },
         })

@@ -172,6 +172,7 @@ impl DashboardView {
         let tile = |label, value, column, history: &History, scale| Tile {
             label,
             value,
+            detail: None,
             top: top(column),
             history: history.clone(),
             scale,
@@ -184,17 +185,20 @@ impl DashboardView {
                 &history.cpu_percent,
                 Some(100.),
             ),
-            tile(
-                "Mémoire",
-                format!(
-                    "{} / {}",
-                    format::bytes(Some(totals.memory_used_bytes)),
-                    format::bytes(Some(totals.memory_total_bytes))
-                ),
-                SortColumn::Memory,
-                &history.memory_percent,
-                Some(100.),
-            ),
+            Tile {
+                detail: totals.memory_breakdown.map(format::memory_breakdown),
+                ..tile(
+                    "Mémoire",
+                    format!(
+                        "{} / {}",
+                        format::bytes(Some(totals.memory_used_bytes)),
+                        format::bytes(Some(totals.memory_total_bytes))
+                    ),
+                    SortColumn::Memory,
+                    &history.memory_percent,
+                    Some(100.),
+                )
+            },
             tile(
                 "GPU",
                 format::percent(totals.gpu_percent),
@@ -556,7 +560,7 @@ impl Render for DashboardView {
                     .child(body),
             )
             .child(div().text_xs().text_color(rgb(theme::MUTED)).child(
-                "« — » : mesure indisponible, ce qui ne veut pas dire 0. La RAM d'une application additionne ses processus : la mémoire partagée peut être comptée plusieurs fois.",
+                "« — » : mesure indisponible, ce qui ne veut pas dire 0. La RAM d'une application additionne ses processus : selon l'OS, elle inclut la mémoire compressée ou compte plusieurs fois la mémoire partagée. La somme des lignes peut donc différer du total.",
             ))
             .when_some(self.notice.clone(), |this, notice| {
                 this.child(div().text_color(rgb(theme::ACCENT)).child(notice))

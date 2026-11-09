@@ -6,6 +6,7 @@ mod terminate;
 
 pub use monitor::{Dashboard, GlobalHistory, Monitor, SAMPLE_INTERVAL};
 pub use ports::{
-    ProbeError, ProcessTerminator, SystemProbe, SystemSample, SystemTotals, TerminateError,
+    MemoryBreakdown, ProbeError, ProcessTerminator, SystemProbe, SystemSample, SystemTotals,
+    TerminateError,
 };
 pub use terminate::{TerminationReport, terminate_app};
