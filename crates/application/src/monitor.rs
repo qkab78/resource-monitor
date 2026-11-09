@@ -181,6 +181,7 @@ mod tests {
                 cpu_percent: 12.0,
                 memory_used_bytes: 50,
                 memory_total_bytes: 100,
+                memory_breakdown: None,
                 gpu_percent: None,
             },
         }

@@ -26,6 +26,8 @@ fn extra_sources() -> sysinfo_probe::ExtraSources {
     sysinfo_probe::ExtraSources {
         network: Some(Box::new(macos::NettopSource::default())),
         gpu: Some(Box::new(macos::IoregGpuSource::default())),
+        footprint: Some(macos::phys_footprint),
+        memory_breakdown: Some(macos::memory_breakdown),
     }
 }
 
@@ -35,5 +37,7 @@ fn extra_sources() -> sysinfo_probe::ExtraSources {
     sysinfo_probe::ExtraSources {
         network: None,
         gpu: None,
+        footprint: None,
+        memory_breakdown: None,
     }
 }

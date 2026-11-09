@@ -1,5 +1,7 @@
 //! Mise en forme des mesures, à la française.
 
+use application::MemoryBreakdown;
+
 pub const UNAVAILABLE: &str = "—";
 const KIB: f64 = 1024.0;
 
@@ -9,6 +11,15 @@ pub fn percent(value: Option<f64>) -> String {
 
 pub fn bytes(value: Option<u64>) -> String {
     value.map_or(UNAVAILABLE.into(), |value| scaled(value as f64))
+}
+
+/// Mémoire utilisée qui n'apparaît dans aucune ligne d'application.
+pub fn memory_breakdown(breakdown: MemoryBreakdown) -> String {
+    format!(
+        "dont système {} · compresseur {}",
+        scaled(breakdown.wired_bytes as f64),
+        scaled(breakdown.compressor_bytes as f64)
+    )
 }
 
 pub fn rate(value: Option<f64>) -> String {
@@ -50,5 +61,17 @@ mod tests {
         assert_eq!(percent(None), "—");
         assert_eq!(bytes(None), "—");
         assert_eq!(rate(None), "—");
+    }
+
+    #[test]
+    fn la_memoire_hors_applications_est_detaillee() {
+        let breakdown = MemoryBreakdown {
+            wired_bytes: 2 * 1024 * 1024 * 1024,
+            compressor_bytes: 512 * 1024 * 1024,
+        };
+        assert_eq!(
+            memory_breakdown(breakdown),
+            "dont système 2,0 Go · compresseur 512,0 Mo"
+        );
     }
 }

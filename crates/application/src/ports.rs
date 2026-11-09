@@ -6,7 +6,18 @@ pub struct SystemTotals {
     pub cpu_percent: f64,
     pub memory_used_bytes: u64,
     pub memory_total_bytes: u64,
+    /// Part de la mémoire utilisée qui n'est attribuée à aucune application. `None` sur Windows.
+    pub memory_breakdown: Option<MemoryBreakdown>,
     pub gpu_percent: Option<f64>,
+}
+
+/// Mémoire utilisée hors applications.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct MemoryBreakdown {
+    /// Pages verrouillées en RAM, surtout par le noyau.
+    pub wired_bytes: u64,
+    /// RAM occupée par le compresseur, qui y range les pages compressées des applications.
+    pub compressor_bytes: u64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
