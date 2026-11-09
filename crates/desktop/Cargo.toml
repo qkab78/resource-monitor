@@ -1,0 +1,10 @@
+[package]
+name = "resource-monitor"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+application.workspace = true
+infrastructure.workspace = true
+ui.workspace = true
