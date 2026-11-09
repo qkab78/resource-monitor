@@ -47,7 +47,7 @@ Le vocabulaire est défini dans [CONTEXT.md](CONTEXT.md) et les décisions dans 
 | Réseau par application | Oui, via `nettop` | Pas encore : affiché « — » |
 | GPU par application | Oui, via `ioreg` | Pas encore : affiché « — » |
 
-La CI compile et teste sur macOS et Windows.
+La CI vérifie chaque pull request sur macOS. Pour vérifier Windows, lance `gh workflow run CI`.
 
 ## Limites connues
 
