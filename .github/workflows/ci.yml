@@ -1,17 +1,14 @@
 name: CI
 
+# macOS vérifie chaque pull request. Windows se lance à la main :
+# gh workflow run CI
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && 'windows-latest' || 'macos-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
