@@ -24,12 +24,17 @@ mod tests {
 
     #[test]
     fn compte_la_memoire_ecrite_par_le_processus() {
-        const SIZE: usize = 64 * 1024 * 1024;
+        // Les autres tests tournent en parallèle dans le même processus : le bloc est assez gros,
+        // et la marge assez large, pour que leurs allocations ne faussent pas la mesure.
+        const SIZE: usize = 256 * 1024 * 1024;
         let before = phys_footprint(std::process::id()).expect("avant");
         let block = std::hint::black_box(vec![1u8; SIZE]);
         let after = phys_footprint(std::process::id()).expect("après");
-        assert!(after >= before + (SIZE as u64) / 2);
         drop(block);
+        assert!(
+            after.saturating_sub(before) >= (SIZE as u64) / 2,
+            "empreinte avant {before}, après {after}"
+        );
     }
 
     #[test]

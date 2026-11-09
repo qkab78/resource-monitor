@@ -169,10 +169,13 @@ impl DashboardView {
                     )
                 })
         };
-        let tile = |label, value, column, history: &History, scale| Tile {
+        let memory_detail = totals.memory_breakdown.map(format::memory_breakdown);
+        // Les autres tuiles réservent la même ligne, vide, pour que les courbes restent alignées.
+        let blank = || memory_detail.as_ref().map(|_| String::new());
+        let tile = |label, value, detail, column, history: &History, scale| Tile {
             label,
             value,
-            detail: None,
+            detail,
             top: top(column),
             history: history.clone(),
             scale,
@@ -181,27 +184,27 @@ impl DashboardView {
             tile(
                 "Processeur",
                 format::percent(Some(totals.cpu_percent)),
+                blank(),
                 SortColumn::Cpu,
                 &history.cpu_percent,
                 Some(100.),
             ),
-            Tile {
-                detail: totals.memory_breakdown.map(format::memory_breakdown),
-                ..tile(
-                    "Mémoire",
-                    format!(
-                        "{} / {}",
-                        format::bytes(Some(totals.memory_used_bytes)),
-                        format::bytes(Some(totals.memory_total_bytes))
-                    ),
-                    SortColumn::Memory,
-                    &history.memory_percent,
-                    Some(100.),
-                )
-            },
+            tile(
+                "Mémoire",
+                format!(
+                    "{} / {}",
+                    format::bytes(Some(totals.memory_used_bytes)),
+                    format::bytes(Some(totals.memory_total_bytes))
+                ),
+                memory_detail.clone(),
+                SortColumn::Memory,
+                &history.memory_percent,
+                Some(100.),
+            ),
             tile(
                 "GPU",
                 format::percent(totals.gpu_percent),
+                blank(),
                 SortColumn::Gpu,
                 &history.gpu_percent,
                 Some(100.),
@@ -209,6 +212,7 @@ impl DashboardView {
             tile(
                 "Disque",
                 format::rate(dashboard.apps_total.disk_bytes_per_sec),
+                blank(),
                 SortColumn::Disk,
                 &history.disk_bytes_per_sec,
                 None,
@@ -216,6 +220,7 @@ impl DashboardView {
             tile(
                 "Réseau",
                 format::rate(dashboard.apps_total.network_bytes_per_sec),
+                blank(),
                 SortColumn::Network,
                 &history.network_bytes_per_sec,
                 None,

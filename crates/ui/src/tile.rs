@@ -9,7 +9,7 @@ use crate::theme;
 pub struct Tile {
     pub label: &'static str,
     pub value: String,
-    /// Précision sous la valeur, quand elle a besoin d'être expliquée.
+    /// Précision sous la valeur, tronquée si elle est trop longue. `Some("")` réserve la ligne vide.
     pub detail: Option<String>,
     pub top: String,
     pub history: History,
@@ -43,7 +43,19 @@ pub fn render(tile: Tile) -> impl IntoElement {
                 .child(tile.value),
         )
         .when_some(tile.detail, |this, detail| {
-            this.child(div().text_xs().text_color(rgb(theme::MUTED)).child(detail))
+            // Une ligne vide garde sa hauteur grâce à l'espace insécable.
+            let text = if detail.is_empty() {
+                "\u{a0}".to_string()
+            } else {
+                detail
+            };
+            this.child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(theme::MUTED))
+                    .truncate()
+                    .child(text),
+            )
         })
         .child(sparkline(tile.history, tile.scale))
         .child(
