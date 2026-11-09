@@ -1,7 +1,11 @@
 //! Adaptateurs vers l'OS : implémentent les ports de la couche application.
 
+// Les parseurs macOS restent testés sur tous les OS, même si seul macOS les utilise.
 #[cfg(any(target_os = "macos", test))]
+#[cfg_attr(not(target_os = "macos"), allow(dead_code, unused_imports))]
 mod macos;
+#[cfg(any(target_os = "macos", test))]
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 mod rates;
 mod sysinfo_probe;
 mod terminator;
