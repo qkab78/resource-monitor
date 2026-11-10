@@ -36,7 +36,7 @@ impl GlobalHistory {
 pub struct Dashboard {
     pub apps: Vec<AppUsage>,
     pub totals: SystemTotals,
-    /// Somme des applications : le disque et le réseau n'ont pas de total côté OS.
+    /// Somme des applications : le disque n'a pas de total côté OS.
     pub apps_total: Usage,
     pub history: GlobalHistory,
 }
@@ -104,6 +104,10 @@ impl Monitor {
             .iter()
             .fold(Usage::default(), |total, app| total + app.usage);
         let gpu_percent = sample.totals.gpu_percent.or(apps_total.gpu_percent);
+        let network_bytes_per_sec = sample
+            .totals
+            .network_bytes_per_sec
+            .or(apps_total.network_bytes_per_sec);
 
         let history = &mut self.dashboard.history;
         history.cpu_percent.push(sample.totals.cpu_percent);
@@ -119,7 +123,7 @@ impl Monitor {
         if let Some(value) = apps_total.disk_bytes_per_sec {
             history.disk_bytes_per_sec.push(value);
         }
-        if let Some(value) = apps_total.network_bytes_per_sec {
+        if let Some(value) = network_bytes_per_sec {
             history.network_bytes_per_sec.push(value);
         }
 
@@ -127,6 +131,7 @@ impl Monitor {
         self.dashboard.apps_total = apps_total;
         self.dashboard.totals = SystemTotals {
             gpu_percent,
+            network_bytes_per_sec,
             ..sample.totals
         };
         Ok(self.dashboard.clone())
@@ -183,6 +188,7 @@ mod tests {
                 memory_total_bytes: 100,
                 memory_breakdown: None,
                 gpu_percent: None,
+                network_bytes_per_sec: None,
             },
         }
     }
@@ -197,6 +203,7 @@ mod tests {
         assert_eq!(apps[0].usage.memory_bytes, Some(400));
         assert_eq!(apps[0].processes[0].usage.memory_bytes, Some(300));
         assert_eq!(dashboard.apps_total.network_bytes_per_sec, Some(6.0));
+        assert_eq!(dashboard.totals.network_bytes_per_sec, Some(6.0));
         assert_eq!(
             dashboard.top_app(SortColumn::Memory).unwrap().name,
             "Discord"
@@ -226,5 +233,27 @@ mod tests {
             [50.0, 50.0]
         );
         assert_eq!(history.gpu_percent.values().len(), 0);
+    }
+
+    #[test]
+    fn le_debit_reseau_de_l_os_prime_sur_la_somme_des_applications() {
+        let mut sample = sample();
+        for process in &mut sample.processes {
+            process.usage.network_bytes_per_sec = None;
+        }
+        sample.totals.network_bytes_per_sec = Some(42.0);
+        let mut monitor = Monitor::new(Box::new(FakeProbe(vec![Ok(sample)])));
+        let dashboard = monitor.refresh().unwrap();
+
+        assert_eq!(dashboard.apps_total.network_bytes_per_sec, None);
+        assert_eq!(dashboard.totals.network_bytes_per_sec, Some(42.0));
+        assert_eq!(
+            dashboard
+                .history
+                .network_bytes_per_sec
+                .values()
+                .collect::<Vec<_>>(),
+            [42.0]
+        );
     }
 }

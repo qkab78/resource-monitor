@@ -2739,6 +2739,7 @@ dependencies = [
  "domain",
  "libc",
  "sysinfo 0.40.1",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

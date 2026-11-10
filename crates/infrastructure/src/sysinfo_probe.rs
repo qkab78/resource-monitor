@@ -113,6 +113,11 @@ impl SystemProbe for SysinfoProbe {
                 memory_total_bytes: self.system.total_memory(),
                 memory_breakdown: self.extra.memory_breakdown.and_then(|read| read()),
                 gpu_percent: self.extra.gpu.as_ref().and_then(|source| source.total()),
+                network_bytes_per_sec: self
+                    .extra
+                    .network
+                    .as_ref()
+                    .and_then(|source| source.total()),
             },
         })
     }

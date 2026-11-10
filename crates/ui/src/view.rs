@@ -219,7 +219,7 @@ impl DashboardView {
             ),
             tile(
                 "Réseau",
-                format::rate(dashboard.apps_total.network_bytes_per_sec),
+                format::rate(totals.network_bytes_per_sec),
                 blank(),
                 SortColumn::Network,
                 &history.network_bytes_per_sec,
