@@ -9,6 +9,8 @@ pub struct SystemTotals {
     /// Part de la mémoire utilisée qui n'est attribuée à aucune application. `None` sur Windows.
     pub memory_breakdown: Option<MemoryBreakdown>,
     pub gpu_percent: Option<f64>,
+    /// Débit réseau de la machine, quand l'OS ne le donne pas par processus.
+    pub network_bytes_per_sec: Option<f64>,
 }
 
 /// Mémoire utilisée hors applications.

@@ -1,6 +1,6 @@
 //! Adaptateurs vers l'OS : implémentent les ports de la couche application.
 
-// Les parseurs macOS restent testés sur tous les OS, même si seul macOS les utilise.
+// Les parseurs de chaque OS restent testés partout, même si un seul OS les utilise.
 #[cfg(any(target_os = "macos", test))]
 #[cfg_attr(not(target_os = "macos"), allow(dead_code, unused_imports))]
 mod macos;
@@ -9,6 +9,9 @@ mod macos;
 mod rates;
 mod sysinfo_probe;
 mod terminator;
+#[cfg(any(not(target_os = "macos"), test))]
+#[cfg_attr(target_os = "macos", allow(dead_code, unused_imports))]
+mod windows;
 
 use application::{ProbeError, ProcessTerminator, SystemProbe};
 
@@ -31,11 +34,14 @@ fn extra_sources() -> sysinfo_probe::ExtraSources {
     }
 }
 
-/// Windows : réseau et GPU ne sont pas encore collectés, ils s'affichent comme indisponibles.
+/// Windows : GPU par processus via PDH. Le réseau n'est connu qu'au total, sans détail par processus.
 #[cfg(not(target_os = "macos"))]
 fn extra_sources() -> sysinfo_probe::ExtraSources {
     sysinfo_probe::ExtraSources {
-        network: None,
+        network: Some(Box::new(windows::InterfacesNetworkSource::new())),
+        #[cfg(windows)]
+        gpu: Some(Box::new(windows::PdhGpuSource::default())),
+        #[cfg(not(windows))]
         gpu: None,
         footprint: None,
         memory_breakdown: None,
