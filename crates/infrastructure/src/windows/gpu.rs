@@ -83,7 +83,7 @@ mod pdh {
 
     use windows_sys::Win32::System::Performance::{
         PDH_CSTATUS_NEW_DATA, PDH_CSTATUS_VALID_DATA, PDH_FMT_COUNTERVALUE_ITEM_W, PDH_FMT_DOUBLE,
-        PDH_HCOUNTER, PDH_HQUERY, PDH_MORE_DATA, PdhAddEnglishCounterW, PdhCloseQuery,
+        PDH_HCOUNTER, PDH_HQUERY, PDH_MORE_DATA, PDH_NO_DATA, PdhAddEnglishCounterW, PdhCloseQuery,
         PdhCollectQueryData, PdhGetFormattedCounterArrayW, PdhOpenQueryW,
     };
 
@@ -138,7 +138,8 @@ mod pdh {
                         ptr::null_mut(),
                     )
                 };
-                if status == SUCCESS {
+                // Aucune instance (session sans GPU, pilote réinitialisé) : GPU au repos, pas inconnu.
+                if status == SUCCESS || status == PDH_NO_DATA {
                     return Some(Vec::new());
                 }
                 if status != PDH_MORE_DATA {

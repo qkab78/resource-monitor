@@ -10,7 +10,7 @@ use crate::sysinfo_probe::RateSource;
 /// Windows n'expose pas le débit par processus sans droits admin : seul le total est connu.
 pub(crate) struct InterfacesNetworkSource {
     networks: Option<Networks>,
-    last: Option<Instant>,
+    last: Instant,
     total: Option<f64>,
 }
 
@@ -18,7 +18,7 @@ impl InterfacesNetworkSource {
     pub(crate) fn new() -> Self {
         Self {
             networks: Networks::new_with_refreshed_list().ok(),
-            last: Some(Instant::now()),
+            last: Instant::now(),
             total: None,
         }
     }
@@ -31,7 +31,7 @@ impl RateSource for InterfacesNetworkSource {
         let networks = self.networks.as_mut()?;
         networks.refresh(true);
         let now = Instant::now();
-        let elapsed = now.duration_since(self.last.replace(now)?);
+        let elapsed = now.duration_since(std::mem::replace(&mut self.last, now));
         let bytes: u64 = networks
             .iter()
             .filter(|(name, _)| !is_loopback(&name.to_string_lossy()))
